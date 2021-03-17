@@ -1,0 +1,69 @@
+version: '3.7'
+
+services:
+  elastic:
+    image: amazon/opendistro-for-elasticsearch:1.12.0
+    environment:
+      discovery.type: single-node
+    ports:
+      - target: 9200
+        published: 9400
+        protocol: tcp
+        mode: host
+    configs:
+      - source: elasticsearch-single
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+      - source: root-ca-single
+        target: /usr/share/elasticsearch/config/root-ca.pem
+      - source: esnode-single
+        target: /usr/share/elasticsearch/config/esnode.pem
+      - source: esnode-key-single
+        target: /usr/share/elasticsearch/config/esnode-key.pem
+      - source: kirk-single
+        target: /usr/share/elasticsearch/config/kirk.pem
+      - source: kirk-key-single
+        target: /usr/share/elasticsearch/config/kirk-key.pem
+    networks:
+      elastic:
+        aliases:
+          - single.sharenj.org
+    volumes:
+      - single:/usr/share/elasticsearch/data
+    deploy:
+      placement:
+        constraints: [node.labels.master1 == true]
+      endpoint_mode: dnsrr
+      mode: "replicated"
+      replicas: 1
+      resources:
+        limits:
+          memory: 1G
+
+networks:
+  elastic:
+    driver: overlay
+    attachable: true
+    name: elastic
+
+volumes:
+  single:
+
+configs:
+  elasticsearch-single:
+    name: elasticsearch-single-${CONFIG:-1}
+    file: ./config/elasticsearch.yml
+  root-ca-single:
+    name: root-ca-single-${CONFIG:-1}
+    file: ./config/certificates/root-ca.pem
+  esnode-single:
+    name: esnode-single-${CONFIG:-1}
+    file: ./config/certificates/esnode.pem
+  esnode-key-single:
+    name: esnode-key-single-${CONFIG:-1}
+    file: ./config/certificates/esnode-key.pem
+  kirk-single:
+    name: kirk-single-${CONFIG:-1}
+    file: ./config/certificates/kirk.pem
+  kirk-key-single:
+    name: kirk-key-single-${CONFIG:-1}
+    file: ./config/certificates/kirk-key.pem
