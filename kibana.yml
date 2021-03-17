@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  kibana:
+    image: amazon/opendistro-for-elasticsearch-kibana:1.12.0
+    environment:
+      ELASTICSEARCH_URL: https://single.sharenj.org:9200
+      ELASTICSEARCH_HOSTS: https://single.sharenj.org:9200
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY: /usr/share/kibana/config/esnode.key
+      SERVER_SSL_CERTIFICATE: /usr/share/kibana/config/esnode.pem
+    networks:
+      - esnet
+    ports:
+      - 5601:5601
+    configs:
+      - source: root-ca-1
+        target: /usr/share/kibana/config/root-ca.pem
+      - source: esnode-pem-1
+        target: /usr/share/kibana/config/esnode.pem
+      - source: esnode-key-1
+        target: /usr/share/kibana/config/esnode.key
+      - source: kibana
+        target: /usr/share/kibana/config/kibana.yml
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+
+networks:
+  esnet:
+    external: true
+
+configs:
+  root-ca-1:
+    external: true
+  esnode-pem-1:
+    external: true
+  esnode-key-1:
+    external: true
+  kibana:
+    name: kibana-${CONFIG:-1}
+    file: ./config/kibana.yml
