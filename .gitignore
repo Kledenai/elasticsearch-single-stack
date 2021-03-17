@@ -1,2 +1,5 @@
-/.idea/
-/*.iml
+.DS_Store
+opendistro.key
+opendistro.pem
+opendistro-ca.pem
+.env
