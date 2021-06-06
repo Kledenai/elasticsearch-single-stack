@@ -3,3 +3,4 @@ opendistro.key
 opendistro.pem
 opendistro-ca.pem
 .env
+.dccache
